@@ -323,14 +323,17 @@
 
 /* Edge button styling */
 .react-flow__edge button {
-  opacity: 0;
+  opacity: 1;
   transition: opacity 0.2s ease;
 }
 
 .react-flow__edge:hover button {
   opacity: 1;
+  transform: scale(1.1);
 }
 
 .react-flow__edge.selected button {
   opacity: 1;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }

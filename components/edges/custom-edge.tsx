@@ -144,13 +144,15 @@ export function CustomEdge({
           className="nodrag nopan"
         >
           <button
-            className={`w-4 h-4 bg-white dark:bg-gray-800 border-2 rounded-full hover:scale-110 transition-transform ${
+            className={`w-4 h-4 bg-white dark:bg-gray-800 border-2 rounded-full hover:scale-110 transition-all opacity-100 ${
               selected ? 'border-blue-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
+            } shadow-sm hover:shadow-md`}
             style={{ borderColor: selected ? strokeColor : undefined }}
             onClick={handleClick}
             title="Customize edge"
-          />
+          >
+            <div className="w-1 h-1 bg-gray-400 rounded-full mx-auto" />
+          </button>
         </div>
       </EdgeLabelRenderer>
 
