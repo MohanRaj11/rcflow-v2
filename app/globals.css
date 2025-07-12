@@ -316,6 +316,7 @@
 .react-flow__edge-path {
   transition: all 0.2s ease;
   cursor: pointer;
+  pointer-events: stroke !important;
 }
 
 .react-flow__edge-path.selected {
@@ -339,6 +340,16 @@
 /* Edge hover effects */
 .react-flow__edge:hover .react-flow__edge-path {
   filter: drop-shadow(0 0 6px currentColor) !important;
+}
+
+/* Ensure edge paths are clickable */
+.react-flow__edge {
+  pointer-events: all !important;
+}
+
+.react-flow__edge path {
+  pointer-events: stroke !important;
+  cursor: pointer !important;
 }
 
 /* Bidirectional edge styling */

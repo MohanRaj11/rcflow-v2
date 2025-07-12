@@ -93,20 +93,24 @@ export function CustomEdge({
     }
   }, [showPopup, id]);
 
-  const handleClick = (event: React.MouseEvent) => {
+  const handleEdgeClick = (event: React.MouseEvent) => {
     event.stopPropagation();
+    event.preventDefault();
     
     // Close other popups first
     const popupCloseEvent = new CustomEvent('closeAllPopups', { detail: { exceptEdgeId: id } });
     document.dispatchEvent(popupCloseEvent);
     
-    // Calculate popup position based on click location
-    const rect = (event.target as SVGElement).getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
-    const clickY = event.clientY - rect.top;
-    
-    setPopupPosition({ x: clickX, y: clickY });
-    setShowPopup(true);
+    // Get the SVG element and calculate relative position
+    const svgElement = event.currentTarget.closest('svg');
+    if (svgElement) {
+      const rect = svgElement.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      
+      setPopupPosition({ x, y });
+      setShowPopup(true);
+    }
   };
 
   const updateEdgeData = (updates: Partial<CustomEdgeData>) => {
@@ -185,6 +189,7 @@ export function CustomEdge({
         </marker>
       </defs>
       
+      {/* Main visible edge path */}
       <BaseEdge
         path={edgePath}
         style={{
@@ -194,10 +199,11 @@ export function CustomEdge({
           filter: selected ? `drop-shadow(0 0 6px ${strokeColor})` : `drop-shadow(0 0 3px ${strokeColor})`,
           animation: animated ? 'flow 1s linear infinite' : 'none',
           cursor: 'pointer',
+          pointerEvents: 'stroke',
         }}
         className={`react-flow__edge-path ${selected ? 'selected' : ''}`}
         data-edge-id={id}
-        onClick={handleClick}
+        onClick={handleEdgeClick}
       />
       
       {/* Invisible wider path for easier clicking */}
@@ -205,10 +211,11 @@ export function CustomEdge({
         path={edgePath}
         style={{
           stroke: 'transparent',
-          strokeWidth: Math.max(strokeWidth * 3, 12), // Wider invisible area for easier clicking
+          strokeWidth: Math.max(strokeWidth * 4, 16), // Much wider invisible area
           cursor: 'pointer',
+          pointerEvents: 'stroke',
         }}
-        onClick={handleClick}
+        onClick={handleEdgeClick}
         data-edge-id={id}
       />
 
@@ -218,8 +225,9 @@ export function CustomEdge({
           <div
             style={{
               position: 'absolute',
-              transform: `translate(-50%, -50%) translate(${popupPosition.x || labelX}px,${(popupPosition.y || labelY) - 40}px)`,
+              transform: `translate(-50%, -50%) translate(${popupPosition.x}px, ${popupPosition.y - 40}px)`,
               pointerEvents: 'all',
+              zIndex: 1000,
             }}
             className="nodrag nopan"
           >

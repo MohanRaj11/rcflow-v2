@@ -187,6 +187,9 @@
   .invisible {
     visibility: hidden;
   }
+  .visible {
+    visibility: visible;
+  }
   .absolute {
     position: absolute;
   }
@@ -1181,6 +1184,7 @@
 .react-flow__edge-path {
   transition: all 0.2s ease;
   cursor: pointer;
+  pointer-events: stroke !important;
 }
 .react-flow__edge-path.selected {
   stroke-width: 3 !important;
@@ -1197,6 +1201,13 @@
 }
 .react-flow__edge:hover .react-flow__edge-path {
   filter: drop-shadow(0 0 6px currentColor) !important;
+}
+.react-flow__edge {
+  pointer-events: all !important;
+}
+.react-flow__edge path {
+  pointer-events: stroke !important;
+  cursor: pointer !important;
 }
 .react-flow__edge-path[data-bidirectional="true"] {
   stroke-dasharray: none;
