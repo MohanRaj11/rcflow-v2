@@ -11,7 +11,6 @@
     --color-red-700: oklch(50.5% 0.213 27.518);
     --color-red-900: oklch(39.6% 0.141 25.723);
     --color-yellow-500: oklch(79.5% 0.184 86.047);
-    --color-green-500: oklch(72.3% 0.219 149.579);
     --color-blue-500: oklch(62.3% 0.214 259.815);
     --color-indigo-500: oklch(58.5% 0.233 277.117);
     --color-purple-500: oklch(62.7% 0.265 303.9);
@@ -184,14 +183,8 @@
   }
 }
 @layer utilities {
-  .invisible {
-    visibility: hidden;
-  }
   .absolute {
     position: absolute;
-  }
-  .fixed {
-    position: fixed;
   }
   .relative {
     position: relative;
@@ -353,8 +346,15 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
   }
+  .border-2 {
+    border-style: var(--tw-border-style);
+    border-width: 2px;
+  }
   .\!border-white {
     border-color: var(--color-white) !important;
+  }
+  .border-blue-500 {
+    border-color: var(--color-blue-500);
   }
   .border-gray-200 {
     border-color: var(--color-gray-200);
@@ -466,9 +466,6 @@
   }
   .text-gray-400 {
     color: var(--color-gray-400);
-  }
-  .text-green-500 {
-    color: var(--color-green-500);
   }
   .text-primary {
     color: var(--primary);
@@ -1167,25 +1164,35 @@
 }
 @keyframes flow {
   0% {
-    stroke-dashoffset: 24;
+    stroke-dashoffset: 20;
   }
   100% {
     stroke-dashoffset: 0;
   }
 }
-.animated-edge {
-  stroke-dasharray: 8,4 !important;
-  animation: flow 2s linear infinite !important;
+@keyframes glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px #70f) drop-shadow(0 0 6px #70f);
+  }
+  50% {
+    filter: drop-shadow(0 0 6px #70f) drop-shadow(0 0 12px #70f) drop-shadow(0 0 18px #70f);
+  }
 }
-.react-flow__edge {
-  cursor: pointer;
-  pointer-events: all !important;
+.react-flow__edge-path {
+  transition: all 0.2s ease;
 }
 .react-flow__edge-path.selected {
   stroke-width: 3 !important;
 }
-.react-flow__edge:hover .react-flow__edge-path {
-  filter: drop-shadow(0 0 6px currentColor) !important;
+.react-flow__edge button {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.react-flow__edge:hover button {
+  opacity: 1;
+}
+.react-flow__edge.selected button {
+  opacity: 1;
 }
 @property --tw-translate-x {
   syntax: "*";
