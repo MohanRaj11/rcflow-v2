@@ -315,6 +315,7 @@
 /* Custom edge styling */
 .react-flow__edge-path {
   transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .react-flow__edge-path.selected {
@@ -333,4 +334,14 @@
 
 .react-flow__edge.selected button {
   opacity: 1;
+}
+
+/* Edge hover effects */
+.react-flow__edge:hover .react-flow__edge-path {
+  filter: drop-shadow(0 0 6px currentColor) !important;
+}
+
+/* Bidirectional edge styling */
+.react-flow__edge-path[data-bidirectional="true"] {
+  stroke-dasharray: none;
 }

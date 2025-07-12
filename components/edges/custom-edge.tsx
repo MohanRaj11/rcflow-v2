@@ -16,6 +16,7 @@ interface CustomEdgeData {
   strokeStyle?: 'solid' | 'dashed';
   animated?: boolean;
   showArrow?: boolean;
+  bidirectional?: boolean;
 }
 
 export function CustomEdge({
@@ -31,6 +32,7 @@ export function CustomEdge({
   selected,
 }: EdgeProps<CustomEdgeData>) {
   const [showPopup, setShowPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const { setEdges, getEdges } = useReactFlow();
 
   const [edgePath, labelX, labelY] = getSmoothStepPath({
@@ -57,6 +59,40 @@ export function CustomEdge({
     };
   }, [id, showPopup]);
 
+  // Close popup when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Don't close if clicking inside the popup
+      if (target.closest('[data-edge-popup-id="' + id + '"]')) {
+        return;
+      }
+      
+      // Don't close if clicking on the current edge
+      if (target.closest('[data-edge-id="' + id + '"]')) {
+        return;
+      }
+      
+      // Close popup if clicking anywhere else
+      if (showPopup) {
+        setShowPopup(false);
+      }
+    };
+
+    if (showPopup) {
+      // Add event listener with slight delay to avoid immediate closure
+      const timeoutId = setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showPopup, id]);
+
   const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     
@@ -64,6 +100,12 @@ export function CustomEdge({
     const popupCloseEvent = new CustomEvent('closeAllPopups', { detail: { exceptEdgeId: id } });
     document.dispatchEvent(popupCloseEvent);
     
+    // Calculate popup position based on click location
+    const rect = (event.target as SVGElement).getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+    
+    setPopupPosition({ x: clickX, y: clickY });
     setShowPopup(true);
   };
 
@@ -90,6 +132,7 @@ export function CustomEdge({
   const strokeStyle = data?.strokeStyle || 'solid';
   const animated = data?.animated || false;
   const showArrow = data?.showArrow !== false; // Default to true
+  const bidirectional = data?.bidirectional || false;
 
   const edgeStyle = {
     stroke: strokeColor,
@@ -98,14 +141,16 @@ export function CustomEdge({
     ...style,
   };
 
-  // Arrow marker ID
-  const markerId = `arrow-${id}`;
+  // Arrow marker IDs
+  const forwardMarkerId = `arrow-forward-${id}`;
+  const backwardMarkerId = `arrow-backward-${id}`;
 
   return (
     <>
       <defs>
+        {/* Forward arrow */}
         <marker
-          id={markerId}
+          id={forwardMarkerId}
           markerWidth="12"
           markerHeight="12"
           refX="9"
@@ -120,39 +165,52 @@ export function CustomEdge({
             strokeWidth="1"
           />
         </marker>
+        
+        {/* Backward arrow (for bidirectional) */}
+        <marker
+          id={backwardMarkerId}
+          markerWidth="12"
+          markerHeight="12"
+          refX="3"
+          refY="3"
+          orient="auto"
+          markerUnits="strokeWidth"
+        >
+          <polygon
+            points="9,0 9,6 0,3"
+            fill={strokeColor}
+            stroke={strokeColor}
+            strokeWidth="1"
+          />
+        </marker>
       </defs>
       
       <BaseEdge
         path={edgePath}
         style={{
           ...edgeStyle,
-          markerEnd: showArrow ? `url(#${markerId})` : 'none',
+          markerEnd: showArrow ? `url(#${forwardMarkerId})` : 'none',
+          markerStart: (showArrow && bidirectional) ? `url(#${backwardMarkerId})` : 'none',
           filter: selected ? `drop-shadow(0 0 6px ${strokeColor})` : `drop-shadow(0 0 3px ${strokeColor})`,
           animation: animated ? 'flow 1s linear infinite' : 'none',
+          cursor: 'pointer',
         }}
         className={`react-flow__edge-path ${selected ? 'selected' : ''}`}
+        data-edge-id={id}
+        onClick={handleClick}
       />
       
-      <EdgeLabelRenderer>
-        <div
-          style={{
-            position: 'absolute',
-            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-            fontSize: 12,
-            pointerEvents: 'all',
-          }}
-          className="nodrag nopan"
-        >
-          <button
-            className={`w-4 h-4 bg-white dark:bg-gray-800 border-2 rounded-full hover:scale-110 transition-transform ${
-              selected ? 'border-blue-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            style={{ borderColor: selected ? strokeColor : undefined }}
-            onClick={handleClick}
-            title="Customize edge"
-          />
-        </div>
-      </EdgeLabelRenderer>
+      {/* Invisible wider path for easier clicking */}
+      <BaseEdge
+        path={edgePath}
+        style={{
+          stroke: 'transparent',
+          strokeWidth: Math.max(strokeWidth * 3, 12), // Wider invisible area for easier clicking
+          cursor: 'pointer',
+        }}
+        onClick={handleClick}
+        data-edge-id={id}
+      />
 
       {/* Edge Popup */}
       {showPopup && (
@@ -160,7 +218,7 @@ export function CustomEdge({
           <div
             style={{
               position: 'absolute',
-              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY - 40}px)`,
+              transform: `translate(-50%, -50%) translate(${popupPosition.x || labelX}px,${(popupPosition.y || labelY) - 40}px)`,
               pointerEvents: 'all',
             }}
             className="nodrag nopan"
