@@ -193,6 +193,9 @@
   .absolute {
     position: absolute;
   }
+  .fixed {
+    position: fixed;
+  }
   .relative {
     position: relative;
   }
@@ -1167,11 +1170,15 @@
 }
 @keyframes flow {
   0% {
-    stroke-dashoffset: 20;
+    stroke-dashoffset: 24;
   }
   100% {
     stroke-dashoffset: 0;
   }
+}
+.animated-edge {
+  stroke-dasharray: 8,4 !important;
+  animation: flow 2s linear infinite !important;
 }
 @keyframes glow-pulse {
   0%, 100% {
@@ -1182,9 +1189,7 @@
   }
 }
 .react-flow__edge-path {
-  transition: all 0.2s ease;
   cursor: pointer;
-  pointer-events: stroke !important;
 }
 .react-flow__edge-path.selected {
   stroke-width: 3 !important;
@@ -1204,9 +1209,6 @@
 }
 .react-flow__edge {
   pointer-events: all !important;
-}
-.react-flow__edge path {
-  pointer-events: stroke !important;
   cursor: pointer !important;
 }
 .react-flow__edge-path[data-bidirectional="true"] {

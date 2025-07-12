@@ -167,9 +167,10 @@ function FlowCanvas() {
         data: {
           strokeColor: '#70f',
           strokeWidth: 2,
-          strokeStyle: 'solid',
-          animated: false,
-          showArrow: true,
+          strokeStyle: 'dashed', // Default to dashed
+          animated: true, // Default to animated
+          showArrow: false, // Default to no arrows
+          bidirectional: false,
         },
       };
       setEdges(addEdge(newEdge, edges));
