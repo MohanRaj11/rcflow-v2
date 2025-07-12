@@ -19,10 +19,15 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { useAppStore } from '@/lib/store';
 import { CustomNode } from './nodes/custom-node';
+import { CustomEdge } from './edges/custom-edge';
 import { Toolbar } from './toolbar';
 
 const nodeTypes = {
   custom: CustomNode,
+};
+
+const edgeTypes = {
+  custom: CustomEdge,
 };
 
 function FlowCanvas() {
@@ -38,7 +43,9 @@ function FlowCanvas() {
     saveToHistory,
     undo,
     selectedNodes,
+    selectedEdges,
     setSelectedNodes,
+    setSelectedEdges,
     clipboard,
     setClipboard,
   } = useAppStore();
@@ -139,8 +146,15 @@ function FlowCanvas() {
     (params: Connection) => {
       const newEdge = { 
         id: generateEdgeId(),
+        type: 'custom',
         ...params,
-        style: { stroke: '#70f', strokeWidth: 2 },
+        data: {
+          strokeColor: '#70f',
+          strokeWidth: 2,
+          strokeStyle: 'solid',
+          animated: false,
+          showArrow: true,
+        },
       };
       setEdges(addEdge(newEdge, edges));
       saveToHistory();
@@ -195,8 +209,9 @@ function FlowCanvas() {
   const onSelectionChange = useCallback(
     (params: OnSelectionChangeParams) => {
       setSelectedNodes(params.nodes);
+      setSelectedEdges(params.edges);
     },
-    [setSelectedNodes]
+    [setSelectedNodes, setSelectedEdges]
   );
 
   const onNodeClick = useCallback(
@@ -236,6 +251,7 @@ function FlowCanvas() {
         onNodeDragStop={onNodeDragStop}
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         className="bg-gray-50 dark:bg-[#0a0a0a]"
         nodesDraggable={currentTool === 'select'}
