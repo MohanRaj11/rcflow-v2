@@ -59,11 +59,6 @@ function FlowCanvas() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Prevent shortcuts when editing text
-      if (document.activeElement?.tagName === 'TEXTAREA') {
-        return;
-      }
-
       // Copy (Ctrl+C)
       if (event.ctrlKey && event.key === 'c') {
         event.preventDefault();
@@ -111,8 +106,6 @@ function FlowCanvas() {
       // Delete (Del)
       if (event.key === 'Delete') {
         event.preventDefault();
-        
-        // Delete selected nodes
         if (selectedNodes.length > 0) {
           const selectedNodeIds = selectedNodes.map(node => node.id);
           setNodes(nodes.filter(node => !selectedNodeIds.includes(node.id)));
@@ -120,15 +113,6 @@ function FlowCanvas() {
             !selectedNodeIds.includes(edge.source) && !selectedNodeIds.includes(edge.target)
           ));
           setSelectedNodes([]);
-          setSelectedEdges([]);
-          saveToHistory();
-        }
-        
-        // Delete selected edges
-        if (selectedEdges.length > 0) {
-          const selectedEdgeIds = selectedEdges.map(edge => edge.id);
-          setEdges(edges.filter(edge => !selectedEdgeIds.includes(edge.id)));
-          setSelectedEdges([]);
           saveToHistory();
         }
       }
@@ -142,7 +126,7 @@ function FlowCanvas() {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodes, selectedEdges, nodes, edges, clipboard, setNodes, setEdges, setSelectedNodes, setSelectedEdges, setClipboard, saveToHistory, undo, generateNodeId, generateEdgeId]);
+  }, [selectedNodes, nodes, edges, clipboard, setNodes, setEdges, setSelectedNodes, setClipboard, saveToHistory, undo, generateNodeId, generateEdgeId]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -167,10 +151,9 @@ function FlowCanvas() {
         data: {
           strokeColor: '#70f',
           strokeWidth: 2,
-          strokeStyle: 'dashed',
-          animated: true,
-          showArrow: false,
-          bidirectional: false,
+          strokeStyle: 'solid',
+          animated: false,
+          showArrow: true,
         },
       };
       setEdges(addEdge(newEdge, edges));

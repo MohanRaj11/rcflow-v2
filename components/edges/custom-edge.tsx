@@ -5,7 +5,7 @@ import {
   BaseEdge,
   EdgeLabelRenderer,
   EdgeProps,
-  getBezierPath,
+  getSmoothStepPath,
   useReactFlow,
 } from 'reactflow';
 import { EdgePopup } from './edge-popup';
@@ -16,7 +16,6 @@ interface CustomEdgeData {
   strokeStyle?: 'solid' | 'dashed';
   animated?: boolean;
   showArrow?: boolean;
-  bidirectional?: boolean;
 }
 
 export function CustomEdge({
@@ -32,12 +31,9 @@ export function CustomEdge({
   selected,
 }: EdgeProps<CustomEdgeData>) {
   const [showPopup, setShowPopup] = useState(false);
-  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const { setEdges, getEdges } = useReactFlow();
-  const edgeRef = useRef<SVGPathElement>(null);
 
-  // Use smooth bezier curves
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -45,38 +41,6 @@ export function CustomEdge({
     targetY,
     targetPosition,
   });
-
-  // Close popup when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      
-      // Don't close if clicking inside the popup
-      if (target.closest(`[data-edge-popup-id="${id}"]`)) {
-        return;
-      }
-      
-      // Don't close if clicking on this edge
-      if (target.closest(`[data-edge-id="${id}"]`)) {
-        return;
-      }
-      
-      // Close popup
-      if (showPopup) {
-        setShowPopup(false);
-      }
-    };
-
-    if (showPopup) {
-      setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-      }, 100);
-      
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showPopup, id]);
 
   // Listen for global popup close events
   useEffect(() => {
@@ -93,24 +57,13 @@ export function CustomEdge({
     };
   }, [id, showPopup]);
 
-  const handleEdgeClick = (event: React.MouseEvent) => {
+  const handleClick = (event: React.MouseEvent) => {
     event.stopPropagation();
-    event.preventDefault();
-    
-    console.log('Edge clicked!', id); // Debug log
     
     // Close other popups first
     const popupCloseEvent = new CustomEvent('closeAllPopups', { detail: { exceptEdgeId: id } });
     document.dispatchEvent(popupCloseEvent);
     
-    // Get click position relative to viewport
-    const rect = (event.target as Element).getBoundingClientRect();
-    const x = event.clientX;
-    const y = event.clientY;
-    
-    console.log('Popup position:', { x, y }); // Debug log
-    
-    setPopupPosition({ x, y });
     setShowPopup(true);
   };
 
@@ -131,31 +84,28 @@ export function CustomEdge({
     setShowPopup(false);
   };
 
-  // Default edge styling
+  // Edge styling
   const strokeColor = data?.strokeColor || '#70f';
   const strokeWidth = data?.strokeWidth || 2;
-  const strokeStyle = data?.strokeStyle || 'dashed';
-  const animated = data?.animated !== false;
-  const showArrow = data?.showArrow || false;
-  const bidirectional = data?.bidirectional || false;
+  const strokeStyle = data?.strokeStyle || 'solid';
+  const animated = data?.animated || false;
+  const showArrow = data?.showArrow !== false; // Default to true
 
   const edgeStyle = {
     stroke: strokeColor,
     strokeWidth,
-    strokeDasharray: strokeStyle === 'dashed' ? '8,4' : 'none',
+    strokeDasharray: strokeStyle === 'dashed' ? '5,5' : 'none',
     ...style,
   };
 
-  // Arrow marker IDs
-  const forwardMarkerId = `arrow-forward-${id}`;
-  const backwardMarkerId = `arrow-backward-${id}`;
+  // Arrow marker ID
+  const markerId = `arrow-${id}`;
 
   return (
     <>
       <defs>
-        {/* Forward arrow */}
         <marker
-          id={forwardMarkerId}
+          id={markerId}
           markerWidth="12"
           markerHeight="12"
           refX="9"
@@ -170,64 +120,48 @@ export function CustomEdge({
             strokeWidth="1"
           />
         </marker>
-        
-        {/* Backward arrow */}
-        <marker
-          id={backwardMarkerId}
-          markerWidth="12"
-          markerHeight="12"
-          refX="3"
-          refY="3"
-          orient="auto"
-          markerUnits="strokeWidth"
-        >
-          <polygon
-            points="9,0 9,6 0,3"
-            fill={strokeColor}
-            stroke={strokeColor}
-            strokeWidth="1"
-          />
-        </marker>
       </defs>
       
-      {/* Clickable invisible path */}
-      <path
-        d={edgePath}
-        fill="none"
-        stroke="transparent"
-        strokeWidth="20"
-        style={{
-          cursor: 'pointer',
-          pointerEvents: 'stroke',
-        }}
-        onClick={handleEdgeClick}
-        data-edge-id={id}
-      />
-      
-      {/* Visible edge path */}
       <BaseEdge
         path={edgePath}
         style={{
           ...edgeStyle,
-          markerEnd: showArrow ? `url(#${forwardMarkerId})` : 'none',
-          markerStart: (showArrow && bidirectional) ? `url(#${backwardMarkerId})` : 'none',
-          filter: selected ? `drop-shadow(0 0 6px ${strokeColor})` : 'none',
-          pointerEvents: 'none',
+          markerEnd: showArrow ? `url(#${markerId})` : 'none',
+          filter: selected ? `drop-shadow(0 0 6px ${strokeColor})` : `drop-shadow(0 0 3px ${strokeColor})`,
+          animation: animated ? 'flow 1s linear infinite' : 'none',
         }}
-        className={`react-flow__edge-path ${selected ? 'selected' : ''} ${animated ? 'animated-edge' : ''}`}
+        className={`react-flow__edge-path ${selected ? 'selected' : ''}`}
       />
+      
+      <EdgeLabelRenderer>
+        <div
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            fontSize: 12,
+            pointerEvents: 'all',
+          }}
+          className="nodrag nopan"
+        >
+          <button
+            className={`w-4 h-4 bg-white dark:bg-gray-800 border-2 rounded-full hover:scale-110 transition-transform ${
+              selected ? 'border-blue-500' : 'border-gray-300 dark:border-gray-600'
+            }`}
+            style={{ borderColor: selected ? strokeColor : undefined }}
+            onClick={handleClick}
+            title="Customize edge"
+          />
+        </div>
+      </EdgeLabelRenderer>
 
       {/* Edge Popup */}
       {showPopup && (
         <EdgeLabelRenderer>
           <div
             style={{
-              position: 'fixed',
-              left: popupPosition.x,
-              top: popupPosition.y - 60,
-              transform: 'translateX(-50%)',
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY - 40}px)`,
               pointerEvents: 'all',
-              zIndex: 1000,
             }}
             className="nodrag nopan"
           >

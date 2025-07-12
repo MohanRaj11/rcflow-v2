@@ -296,30 +296,41 @@
 /* Edge Flow Animation */
 @keyframes flow {
   0% {
-    stroke-dashoffset: 24;
+    stroke-dashoffset: 20;
   }
   100% {
     stroke-dashoffset: 0;
   }
 }
 
-/* Animated edge class */
-.animated-edge {
-  stroke-dasharray: 8,4 !important;
-  animation: flow 2s linear infinite !important;
+@keyframes glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px #70f) drop-shadow(0 0 6px #70f);
+  }
+  50% {
+    filter: drop-shadow(0 0 6px #70f) drop-shadow(0 0 12px #70f) drop-shadow(0 0 18px #70f);
+  }
 }
 
 /* Custom edge styling */
-.react-flow__edge {
-  cursor: pointer;
-  pointer-events: all !important;
+.react-flow__edge-path {
+  transition: all 0.2s ease;
 }
 
 .react-flow__edge-path.selected {
   stroke-width: 3 !important;
 }
 
-/* Edge hover effects */
-.react-flow__edge:hover .react-flow__edge-path {
-  filter: drop-shadow(0 0 6px currentColor) !important;
+/* Edge button styling */
+.react-flow__edge button {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.react-flow__edge:hover button {
+  opacity: 1;
+}
+
+.react-flow__edge.selected button {
+  opacity: 1;
 }

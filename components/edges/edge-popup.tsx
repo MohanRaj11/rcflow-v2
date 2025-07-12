@@ -10,7 +10,6 @@ import {
   ArrowRight,
   Zap,
   Square,
-  ArrowLeftRight,
 } from 'lucide-react';
 
 interface EdgePopupProps {
@@ -79,9 +78,6 @@ export function EdgePopup({ edgeId, edgeData, onClose, onUpdateData, onDelete }:
     onUpdateData({ animated: !edgeData.animated });
   };
 
-  const toggleBidirectional = () => {
-    onUpdateData({ bidirectional: !edgeData.bidirectional });
-  };
   const closeAllDropdowns = () => {
     setShowColors(false);
     setShowWidths(false);
@@ -91,9 +87,9 @@ export function EdgePopup({ edgeId, edgeData, onClose, onUpdateData, onDelete }:
   return (
     <div
       ref={popupRef}
-      data-edge-popup-id={edgeId}
+      data-popup-id={edgeId}
       className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-xl p-0"
-      style={{ minWidth: '140px' }}
+      style={{ minWidth: '120px' }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-center gap-1 h-6 px-1">
@@ -222,18 +218,6 @@ export function EdgePopup({ edgeId, edgeData, onClose, onUpdateData, onDelete }:
           <ArrowRight className="h-3 w-3" />
         </Button>
 
-        {/* Bidirectional Toggle */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className={`h-full w-4 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 ${
-            edgeData.bidirectional ? 'text-green-500' : 'text-gray-400'
-          }`}
-          onClick={toggleBidirectional}
-          title="Toggle Bidirectional"
-        >
-          <ArrowLeftRight className="h-3 w-3" />
-        </Button>
         {/* Animation Toggle */}
         <Button
           variant="ghost"
