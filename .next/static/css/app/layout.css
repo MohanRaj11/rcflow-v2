@@ -187,9 +187,6 @@
   .invisible {
     visibility: hidden;
   }
-  .visible {
-    visibility: visible;
-  }
   .absolute {
     position: absolute;
   }
@@ -1180,39 +1177,15 @@
   stroke-dasharray: 8,4 !important;
   animation: flow 2s linear infinite !important;
 }
-@keyframes glow-pulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 3px #70f) drop-shadow(0 0 6px #70f);
-  }
-  50% {
-    filter: drop-shadow(0 0 6px #70f) drop-shadow(0 0 12px #70f) drop-shadow(0 0 18px #70f);
-  }
-}
-.react-flow__edge-path {
+.react-flow__edge {
   cursor: pointer;
+  pointer-events: all !important;
 }
 .react-flow__edge-path.selected {
   stroke-width: 3 !important;
 }
-.react-flow__edge button {
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-.react-flow__edge:hover button {
-  opacity: 1;
-}
-.react-flow__edge.selected button {
-  opacity: 1;
-}
 .react-flow__edge:hover .react-flow__edge-path {
   filter: drop-shadow(0 0 6px currentColor) !important;
-}
-.react-flow__edge {
-  pointer-events: all !important;
-  cursor: pointer !important;
-}
-.react-flow__edge-path[data-bidirectional="true"] {
-  stroke-dasharray: none;
 }
 @property --tw-translate-x {
   syntax: "*";

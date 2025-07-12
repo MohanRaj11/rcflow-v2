@@ -167,9 +167,9 @@ function FlowCanvas() {
         data: {
           strokeColor: '#70f',
           strokeWidth: 2,
-          strokeStyle: 'dashed', // Default to dashed
-          animated: true, // Default to animated
-          showArrow: false, // Default to no arrows
+          strokeStyle: 'dashed',
+          animated: true,
+          showArrow: false,
           bidirectional: false,
         },
       };

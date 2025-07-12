@@ -34,8 +34,9 @@ export function CustomEdge({
   const [showPopup, setShowPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const { setEdges, getEdges } = useReactFlow();
+  const edgeRef = useRef<SVGPathElement>(null);
 
-  // Use smooth bezier curves instead of step paths
+  // Use smooth bezier curves
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
@@ -44,6 +45,38 @@ export function CustomEdge({
     targetY,
     targetPosition,
   });
+
+  // Close popup when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      
+      // Don't close if clicking inside the popup
+      if (target.closest(`[data-edge-popup-id="${id}"]`)) {
+        return;
+      }
+      
+      // Don't close if clicking on this edge
+      if (target.closest(`[data-edge-id="${id}"]`)) {
+        return;
+      }
+      
+      // Close popup
+      if (showPopup) {
+        setShowPopup(false);
+      }
+    };
+
+    if (showPopup) {
+      setTimeout(() => {
+        document.addEventListener('mousedown', handleClickOutside);
+      }, 100);
+      
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showPopup, id]);
 
   // Listen for global popup close events
   useEffect(() => {
@@ -60,48 +93,22 @@ export function CustomEdge({
     };
   }, [id, showPopup]);
 
-  // Close popup when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      
-      // Don't close if clicking inside the popup
-      if (target.closest('[data-edge-popup-id="' + id + '"]')) {
-        return;
-      }
-      
-      // Close popup if clicking anywhere else
-      if (showPopup) {
-        setShowPopup(false);
-      }
-    };
-
-    if (showPopup) {
-      // Add event listener with slight delay to avoid immediate closure
-      const timeoutId = setTimeout(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-      }, 100);
-      
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showPopup, id]);
-
   const handleEdgeClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
     
-    console.log('Edge clicked:', id); // Debug log
+    console.log('Edge clicked!', id); // Debug log
     
     // Close other popups first
     const popupCloseEvent = new CustomEvent('closeAllPopups', { detail: { exceptEdgeId: id } });
     document.dispatchEvent(popupCloseEvent);
     
-    // Calculate popup position relative to the viewport
+    // Get click position relative to viewport
+    const rect = (event.target as Element).getBoundingClientRect();
     const x = event.clientX;
     const y = event.clientY;
+    
+    console.log('Popup position:', { x, y }); // Debug log
     
     setPopupPosition({ x, y });
     setShowPopup(true);
@@ -124,12 +131,12 @@ export function CustomEdge({
     setShowPopup(false);
   };
 
-  // Default edge styling - dotted animated line with no arrows
+  // Default edge styling
   const strokeColor = data?.strokeColor || '#70f';
   const strokeWidth = data?.strokeWidth || 2;
-  const strokeStyle = data?.strokeStyle || 'dashed'; // Default to dashed
-  const animated = data?.animated !== false; // Default to true (animated)
-  const showArrow = data?.showArrow || false; // Default to false (no arrows)
+  const strokeStyle = data?.strokeStyle || 'dashed';
+  const animated = data?.animated !== false;
+  const showArrow = data?.showArrow || false;
   const bidirectional = data?.bidirectional || false;
 
   const edgeStyle = {
@@ -164,7 +171,7 @@ export function CustomEdge({
           />
         </marker>
         
-        {/* Backward arrow (for bidirectional) */}
+        {/* Backward arrow */}
         <marker
           id={backwardMarkerId}
           markerWidth="12"
@@ -183,19 +190,21 @@ export function CustomEdge({
         </marker>
       </defs>
       
-      {/* Invisible wider path for easier clicking */}
-      <BaseEdge
-        path={edgePath}
+      {/* Clickable invisible path */}
+      <path
+        d={edgePath}
+        fill="none"
+        stroke="transparent"
+        strokeWidth="20"
         style={{
-          stroke: 'transparent',
-          strokeWidth: 20, // Wide invisible area for clicking
           cursor: 'pointer',
           pointerEvents: 'stroke',
         }}
         onClick={handleEdgeClick}
+        data-edge-id={id}
       />
       
-      {/* Main visible edge path */}
+      {/* Visible edge path */}
       <BaseEdge
         path={edgePath}
         style={{
@@ -203,7 +212,7 @@ export function CustomEdge({
           markerEnd: showArrow ? `url(#${forwardMarkerId})` : 'none',
           markerStart: (showArrow && bidirectional) ? `url(#${backwardMarkerId})` : 'none',
           filter: selected ? `drop-shadow(0 0 6px ${strokeColor})` : 'none',
-          pointerEvents: 'none', // Let the invisible path handle clicks
+          pointerEvents: 'none',
         }}
         className={`react-flow__edge-path ${selected ? 'selected' : ''} ${animated ? 'animated-edge' : ''}`}
       />
@@ -215,7 +224,7 @@ export function CustomEdge({
             style={{
               position: 'fixed',
               left: popupPosition.x,
-              top: popupPosition.y - 50,
+              top: popupPosition.y - 60,
               transform: 'translateX(-50%)',
               pointerEvents: 'all',
               zIndex: 1000,
